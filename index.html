@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驰远天合水咖 </title>
+    <style>
+        :root {
+            --sb-green: #006241;
+            --sb-light-green: #1e3932;
+            --sb-bg: #f9f9f9;
+            --sb-card-bg: #ffffff;
+            --sb-text-main: #212121;
+            --sb-text-sub: #6b6b6b;
+            --sb-border: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--sb-bg);
+            color: var(--sb-text-main);
+        }
+
+        /* 视图页面切换控制 */
+        .page-view {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        /* 顶部导航 */
+        header {
+            background-color: var(--sb-light-green);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-title h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .header-title p {
+            color: #d4e9e2;
+            font-size: 0.75rem;
+        }
+
+        .btn-user {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-user:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 140px;
+        }
+
+        /* 规则提示 */
+        .discount-banner {
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            color: var(--sb-light-green);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--sb-light-green);
+            margin: 20px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--sb-green);
+        }
+
+        /* 商品列表 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .item-card {
+            background-color: var(--sb-card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--sb-border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .item-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background-color: #f2f2f2;
+        }
+
+        .item-body {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        .item-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .item-desc {
+            font-size: 0.75rem;
+            color: var(--sb-text-sub);
+            margin-bottom: 10px;
+        }
+
+        .item-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-price {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--sb-green);
+        }
+
+        .btn-select {
+            background-color: var(--sb-green);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* 购物车底栏 */
+        .cart-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-top: 1px solid var(--sb-border);
+            padding: 12px 20px;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+            z-index: 90;
+        }
+
+        .cart-inner {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .study-input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--sb-border);
+            font-size: 0.85rem;
+        }
+
+        .study-input {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid var(--sb-border);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .cart-checkout-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-price {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--sb-green);
+        }
+
+        .discount-text {
+            font-size: 0.75rem;
+            color: #d9534f;
+        }
+
+        .btn-submit {
+            background-color: var(--sb-green);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* ================= 独立结算页面样式 ================= */
+        .checkout-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .checkout-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border: 1px solid var(--sb-border);
+        }
+
+        .checkout-header {
+            border-bottom: 1px solid var(--sb-border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-item-list {
+            margin-bottom: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            padding: 8px 0;
+            border-bottom: 1px #f0f0f0 solid;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--sb-text-sub);
+        }
+
+        .summary-row.total {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--sb-green);
+            border-top: 1px solid var(--sb-border);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .btn-pay {
+            width: 100%;
+            background-color: var(--sb-green);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: var(--sb-green);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* Modal 遮罩 (登录 & 鼓励弹窗) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .encouragement-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--sb-green);
+            margin-bottom: 12px;
+        }
+
+        .encouragement-quote {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--sb-text-main);
+            margin: 16px 0;
+            background: #f4fbf7;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid var(--sb-green);
+        }
+
+        /* 登录表单 */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--sb-text-sub);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--sb-border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: var(--sb-green);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-title">
+        <h1>驰远天合水咖</h1>
+        <p>一分耕耘 一分收获</p>
+    </div>
+    <button class="btn-user" id="user-btn" onclick="openLoginModal()">登录</button>
+</header>
+
+<!-- 页面 1: 点单主页 -->
+<div id="page-menu" class="page-view active">
+    <div class="container">
+        <div class="discount-banner">
+            <span>📖 <b>学习抵扣规则：</b>每学习 30 分钟抵扣 1 元</span>
+        </div>
+
+        <div id="menu-container"></div>
+    </div>
+
+    <!-- 底部购物车栏 -->
+    <div class="cart-bar">
+        <div class="cart-inner">
+            <div class="study-input-row">
+                <label for="study-time">⏱️ 输入今日学习时长（分钟）：</label>
+                <input type="number" id="study-time" class="study-input" value="0" min="0" step="30" oninput="updateCartUI()">
+            </div>
+            <div class="cart-checkout-row">
+                <div>
+                    <div style="font-size: 0.75rem; color: var(--sb-text-sub);">原价: ￥<span id="original-price">0</span> | 已选 <span id="cart-count">0</span> 件</div>
+                    <div class="total-price">实付: ￥<span id="total-price">0</span></div>
+                    <div class="discount-text" id="discount-info">已抵扣 ￥0</div>
+                </div>
+                <button class="btn-submit" onclick="goToCheckout()">前往结算页</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页面 2: 独立结算页面 -->
+<div id="page-checkout" class="page-view">
+    <div class="checkout-container">
+        <button class="btn-back" onclick="switchPage('page-menu')">← 返回继续点单</button>
+        
+        <div class="checkout-card">
+            <div class="checkout-header">
+                <h2>订单确认</h2>
+                <span id="checkout-user" style="font-size: 0.85rem; color: var(--sb-text-sub);"></span>
+            </div>
+
+            <div style="font-weight: 700; margin-bottom: 10px; font-size: 0.9rem;">已选商品：</div>
+            <div class="order-item-list" id="checkout-item-list"></div>
+
+            <div class="summary-row">
+                <span>商品原价</span>
+                <span>￥<span id="co-original">0</span></span>
+            </div>
+            <div class="summary-row">
+                <span>学习时长</span>
+                <span><span id="co-study-time">0</span> 分钟</span>
+            </div>
+            <div class="summary-row" style="color: #d9534f;">
+                <span>学习时长抵扣</span>
+                <span>-￥<span id="co-discount">0</span></span>
+            </div>
+
+            <div class="summary-row total">
+                <span>最终需支付</span>
+                <span>￥<span id="co-final">0</span></span>
+            </div>
+
+            <button class="btn-pay" onclick="confirmPayment()">确认支付并结算</button>
+        </div>
+    </div>
+</div>
+
+<!-- 用户登录弹窗 -->
+<div class="modal-overlay" id="login-modal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="color: var(--sb-light-green);">会员登录</h3>
+            <button onclick="closeModal('login-modal')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+        </div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label" for="username">账号 / 手机号</label>
+                <input type="text" id="username" class="form-input" placeholder="请输入账号" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="btn-login">登 录</button>
+        </form>
+    </div>
+</div>
+
+<!-- 随机学习鼓励语弹窗 -->
+<div class="modal-overlay" id="encouragement-modal">
+    <div class="modal-content">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">🎓</div>
+        <div class="encouragement-title">支付成功！</div>
+        <p style="font-size: 0.85rem; color: var(--sb-text-sub);">感谢您在驰远天合水咖度过的学习时光：</p>
+        
+        <div class="encouragement-quote" id="quote-text"></div>
+
+        <button class="btn-login" onclick="finishOrder()">收下鼓励，继续加油！</button>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+
+    // 随机鼓励语库
+    const encouragementQuotes = [
+        "星光不问赶路人，岁月不负有心人。今天学习的每一分钟，都在为你筑造更好的未来！",
+        "学习就像品尝一杯黑咖啡，初尝略微带苦，但回甘却是无穷的清甜。继续加油！",
+        "不积跬步，无以至千里。今天的积累，就是明天惊艳全场的底气！",
+        "你在安静学习时付出的努力，时间都会以最惊艳的方式回报给你！",
+        "保持专注，保持热爱。知识的甘霖会滋养你的思想，愿你今日收获满满！",
+        "日拱一卒，功不唐捐。每一页书、每一道题，都在离你的梦想更近一步！"
+    ];
+
+    // 菜单数据
+    const menuData = [
+        {
+            category: "一、西方豆子类 (Coffee)",
+            items: [
+                { id: 1, name: "茉莉花香拿铁", price: 12, desc: "清新茉莉花香融合浓郁咖啡", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=500&q=80" },
+                { id: 2, name: "美式咖啡", price: 8, desc: "精选深烘焙豆，口感醇厚", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=500&q=80" },
+                { id: 3, name: "香草拿铁", price: 11, desc: "经典香草风味，香甜顺滑", img: "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=500&q=80" }
+            ]
+        },
+        {
+            category: "二、东方叶子类 (Tea)",
+            items: [
+                { id: 4, name: "盗版伯牙绝弦", price: 10, desc: "雪顶茉莉雪芽鲜奶茶", img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=500&q=80" },
+                { id: 5, name: "正版东方树叶", price: 6, desc: "无糖原萃乌龙茶", img: "https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=500&q=80" },
+                { id: 6, name: "龙井绿茶", price: 9, desc: "鲜爽甘醇，清香持久", img: "https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=500&q=80" }
+            ]
+        }
+    ];
+
+    let cart = [];
+
+    // 视图切换
+    function switchPage(pageId) {
+        document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // 渲染菜单
+    function renderMenu() {
+        const container = document.getElementById('menu-container');
+        let html = '';
+
+        menuData.forEach(cat => {
+            html += `<div class="category-title">${cat.category}</div><div class="grid">`;
+            cat.items.forEach(item => {
+                html += `
+                    <div class="item-card" onclick="addToCart('${item.name}', ${item.price})">
+                        <img class="item-img" src="${item.img}" alt="${item.name}">
+                        <div class="item-body">
+                            <div>
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-desc">${item.desc}</div>
+                            </div>
+                            <div class="item-bottom">
+                                <div class="item-price">￥${item.price}</div>
+                                <button class="btn-select">加入购物车</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function addToCart(name, price) {
+        cart.push({ name, price });
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        document.getElementById('cart-count').textContent = cart.length;
+        const originalPrice = cart.reduce((sum, item) => sum + item.price, 0);
+        document.getElementById('original-price').textContent = originalPrice;
+
+        const minutes = parseInt(document.getElementById('study-time').value) || 0;
+        const discount = Math.floor(minutes / 30); // 30分钟抵扣1元
+        
+        const finalPrice = Math.max(0, originalPrice - discount);
+        const actualDiscount = originalPrice - finalPrice;
+
+        document.getElementById('total-price').textContent = finalPrice;
+        document.getElementById('discount-info').textContent = `已抵扣 ￥${actualDiscount}`;
+    }
+
+    // 跳转至独立结算页面
+    function goToCheckout() {
+        if (!currentUser) {
+            alert('请先登录账号后再结算！');
+            openLoginModal();
+            return;
+        }
+
+        if (cart.length === 0) {
+            alert('购物车为空，请先选择商品！');
+            return;
+        }
+
+        // 填入结算页数据
+        document.getElementById('checkout-user').textContent = `当前账号：${currentUser}`;
+        
+        const itemListContainer = document.getElementById('checkout-item-list');
+        itemListContainer.innerHTML = '';
+        cart.forEach(item => {
+            itemListContainer.innerHTML += `
+                <div class="order-item">
+                    <span>${item.name}</span>
+                    <span>￥${item.price}</span>
+                </div>
+            `;
+        });
+
+        const original = cart.reduce((sum, item) => sum + item.price, 0);
+        const minutes = parseInt(document.getElementById('study-time').value) || 0;
+        const discount = Math.floor(minutes / 30);
+        const finalPrice = Math.max(0, original - discount);
+
+        document.getElementById('co-original').textContent = original;
+        document.getElementById('co-study-time').textContent = minutes;
+        document.getElementById('co-discount').textContent = original - finalPrice;
+        document.getElementById('co-final').textContent = finalPrice;
+
+        switchPage('page-checkout');
+    }
+
+    // 提交订单并弹出随机鼓励语
+    function confirmPayment() {
+        // 随机获取一条鼓励语
+        const randomIndex = Math.floor(Math.random() * encouragementQuotes.length);
+        document.getElementById('quote-text').textContent = `“${encouragementQuotes[randomIndex]}”`;
+
+        // 弹出鼓励框
+        document.getElementById('encouragement-modal').classList.add('active');
+    }
+
+    function finishOrder() {
+        closeModal('encouragement-modal');
+        // 重置购物车
+        cart = [];
+        document.getElementById('study-time').value = 0;
+        updateCartUI();
+        switchPage('page-menu');
+    }
+
+    // 登录 Modal 逻辑
+    function openLoginModal() {
+        if (currentUser) {
+            if (confirm(`当前账号【${currentUser}】，是否退出登录？`)) {
+                currentUser = null;
+                document.getElementById('user-btn').textContent = '登录';
+            }
+        } else {
+            document.getElementById('login-modal').classList.add('active');
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        if (username) {
+            currentUser = username;
+            document.getElementById('user-btn').textContent = `👤 ${username}`;
+            closeModal('login-modal');
+            alert(`登录成功！欢迎，${username}`);
+        }
+    }
+
+    renderMenu();
+</script>
+
+</body>
+</html>
