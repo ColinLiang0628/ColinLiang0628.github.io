@@ -273,9 +273,21 @@
         .order-item {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
             font-size: 0.9rem;
             padding: 8px 0;
             border-bottom: 1px #f0f0f0 solid;
+        }
+
+        .order-item-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-item-specs {
+            font-size: 0.75rem;
+            color: var(--sb-text-sub);
+            margin-top: 2px;
         }
 
         .summary-row {
@@ -320,7 +332,7 @@
             margin-bottom: 16px;
         }
 
-        /* Modal 遮罩 (登录 & 鼓励弹窗) */
+        /* Modal 遮罩 (登录 & 鼓励弹窗 & 规格弹窗) */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -363,6 +375,48 @@
             padding: 16px;
             border-radius: 12px;
             border-left: 4px solid var(--sb-green);
+        }
+
+        /* 规格选择弹窗专用样式 */
+        .spec-modal-content {
+            text-align: left;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .spec-section {
+            margin-bottom: 16px;
+        }
+
+        .spec-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--sb-text-sub);
+            margin-bottom: 8px;
+        }
+
+        .spec-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .spec-btn {
+            border: 1px solid var(--sb-border);
+            background: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--sb-text-main);
+        }
+
+        .spec-btn.active {
+            border-color: var(--sb-green);
+            background-color: #f0f7f4;
+            color: var(--sb-green);
+            font-weight: 600;
         }
 
         /* 登录表单 */
@@ -478,6 +532,57 @@
     </div>
 </div>
 
+<!-- 商品规格选择弹窗 -->
+<div class="modal-overlay" id="spec-modal">
+    <div class="modal-content spec-modal-content">
+        <div style="display:flex; justify-style:space-between; align-items:flex-start; margin-bottom:12px;">
+            <div>
+                <h3 id="spec-item-name" style="color: var(--sb-light-green); font-size: 1.1rem;"></h3>
+                <div id="spec-item-desc" style="font-size: 0.75rem; color: var(--sb-text-sub); margin-top: 2px;"></div>
+            </div>
+            <button onclick="closeModal('spec-modal')" style="background:none; border:none; font-size:1.4rem; cursor:pointer; margin-left: auto;">&times;</button>
+        </div>
+
+        <!-- 规格 1: 杯型尺寸 -->
+        <div class="spec-section">
+            <div class="spec-title">杯型尺寸</div>
+            <div class="spec-options" id="spec-size-group">
+                <button class="spec-btn active" data-type="size" data-value="中杯" data-extra="0" onclick="selectSpec(this)">中杯</button>
+                <button class="spec-btn" data-type="size" data-value="大杯" data-extra="3" onclick="selectSpec(this)">大杯 (+￥3)</button>
+            </div>
+        </div>
+
+        <!-- 规格 2: 甜度/糖分 -->
+        <div class="spec-section">
+            <div class="spec-title">糖度选择</div>
+            <div class="spec-options" id="spec-sugar-group">
+                <button class="spec-btn active" data-type="sugar" data-value="标准糖" onclick="selectSpec(this)">标准糖</button>
+                <button class="spec-btn" data-type="sugar" data-value="少糖" onclick="selectSpec(this)">少糖</button>
+                <button class="spec-btn" data-type="sugar" data-value="无糖" onclick="selectSpec(this)">无糖</button>
+            </div>
+        </div>
+
+        <!-- 规格 3: 奶类选择 -->
+        <div class="spec-section">
+            <div class="spec-title">配奶选择</div>
+            <div class="spec-options" id="spec-milk-group">
+                <button class="spec-btn active" data-type="milk" data-value="全脂全纯牛奶" onclick="selectSpec(this)">全脂牛奶</button>
+                <button class="spec-btn" data-type="milk" data-value="燕麦奶" onclick="selectSpec(this)">燕麦奶</button>
+                <button class="spec-btn" data-type="milk" data-value="脱脂牛奶" onclick="selectSpec(this)">脱脂牛奶</button>
+                <button class="spec-btn" data-type="milk" data-value="无奶" onclick="selectSpec(this)">无奶</button>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--sb-border); padding-top: 12px;">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--sb-text-sub);">小计：</span>
+                <span style="font-size: 1.2rem; font-weight: 800; color: var(--sb-green);">￥<span id="spec-calculated-price">0</span></span>
+            </div>
+            <button class="btn-submit" style="padding: 8px 20px;" onclick="confirmAddToCart()">加入购物车</button>
+        </div>
+    </div>
+</div>
+
 <!-- 用户登录弹窗 -->
 <div class="modal-overlay" id="login-modal">
     <div class="modal-content">
@@ -514,6 +619,7 @@
 
 <script>
     let currentUser = null;
+    let currentSelectedItem = null; // 当前正在选择规格的商品数据
 
     // 随机鼓励语库
     const encouragementQuotes = [
@@ -563,7 +669,7 @@
             html += `<div class="category-title">${cat.category}</div><div class="grid">`;
             cat.items.forEach(item => {
                 html += `
-                    <div class="item-card" onclick="addToCart('${item.name}', ${item.price})">
+                    <div class="item-card" onclick="openSpecModal(${item.id})">
                         <img class="item-img" src="${item.img}" alt="${item.name}">
                         <div class="item-body">
                             <div>
@@ -571,8 +677,8 @@
                                 <div class="item-desc">${item.desc}</div>
                             </div>
                             <div class="item-bottom">
-                                <div class="item-price">￥${item.price}</div>
-                                <button class="btn-select">加入购物车</button>
+                                <div class="item-price">￥${item.price} 起</div>
+                                <button class="btn-select">选规格</button>
                             </div>
                         </div>
                     </div>
@@ -584,8 +690,80 @@
         container.innerHTML = html;
     }
 
-    function addToCart(name, price) {
-        cart.push({ name, price });
+    // 打开规格选择弹窗
+    function openSpecModal(itemId) {
+        // 查找对应商品
+        let foundItem = null;
+        for (let cat of menuData) {
+            foundItem = cat.items.find(i => i.id === itemId);
+            if (foundItem) break;
+        }
+
+        if (!foundItem) return;
+        currentSelectedItem = foundItem;
+
+        document.getElementById('spec-item-name').textContent = foundItem.name;
+        document.getElementById('spec-item-desc').textContent = foundItem.desc;
+
+        // 重置规格选中态为第一个选项
+        resetSpecGroup('spec-size-group');
+        resetSpecGroup('spec-sugar-group');
+        resetSpecGroup('spec-milk-group');
+
+        updateSpecPrice();
+        document.getElementById('spec-modal').classList.add('active');
+    }
+
+    function resetSpecGroup(groupId) {
+        const btns = document.querySelectorAll(`#${groupId} .spec-btn`);
+        btns.forEach((btn, idx) => {
+            if (idx === 0) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    // 处理规格按钮点击
+    function selectSpec(btn) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateSpecPrice();
+    }
+
+    // 实时计算当前选定规格的价格
+    function updateSpecPrice() {
+        if (!currentSelectedItem) return;
+        
+        let price = currentSelectedItem.price;
+        const activeSizeBtn = document.querySelector('#spec-size-group .spec-btn.active');
+        if (activeSizeBtn) {
+            price += parseFloat(activeSizeBtn.getAttribute('data-extra') || 0);
+        }
+
+        document.getElementById('spec-calculated-price').textContent = price;
+    }
+
+    // 确认添加至购物车
+    function confirmAddToCart() {
+        if (!currentSelectedItem) return;
+
+        const activeSizeBtn = document.querySelector('#spec-size-group .spec-btn.active');
+        const activeSugarBtn = document.querySelector('#spec-sugar-group .spec-btn.active');
+        const activeMilkBtn = document.querySelector('#spec-milk-group .spec-btn.active');
+
+        const extraPrice = parseFloat(activeSizeBtn.getAttribute('data-extra') || 0);
+        const finalPrice = currentSelectedItem.price + extraPrice;
+
+        const cartItem = {
+            name: currentSelectedItem.name,
+            price: finalPrice,
+            size: activeSizeBtn.getAttribute('data-value'),
+            sugar: activeSugarBtn.getAttribute('data-value'),
+            milk: activeMilkBtn.getAttribute('data-value')
+        };
+
+        cart.push(cartItem);
+        closeModal('spec-modal');
         updateCartUI();
     }
 
@@ -625,7 +803,10 @@
         cart.forEach(item => {
             itemListContainer.innerHTML += `
                 <div class="order-item">
-                    <span>${item.name}</span>
+                    <div class="order-item-details">
+                        <span style="font-weight: 600;">${item.name}</span>
+                        <span class="order-item-specs">${item.size} / ${item.sugar} / ${item.milk}</span>
+                    </div>
                     <span>￥${item.price}</span>
                 </div>
             `;
